@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATELIER — Virtual Design Showrooms</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000000;
+            --white: #F0EDE8;
+            --muted: #6A6760;
+            --accent: #C4A882;
+            --border: rgba(255,255,255,0.07);
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'Jost', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: var(--font-body);
+            font-weight: 300;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            opacity: 0.028;
+            pointer-events: none;
+            z-index: 9990;
+        }
+
+        /* Custom cursor */
+        .cursor {
+            position: fixed;
+            width: 7px;
+            height: 7px;
+            background: var(--white);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .cursor-ring {
+            position: fixed;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+
+        .cursor.grow { width: 14px; height: 14px; }
+        .cursor-ring.grow { width: 52px; height: 52px; border-color: rgba(196,168,130,0.5); }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2rem 3.5rem;
+            transition: background 0.5s ease, border-color 0.5s ease, backdrop-filter 0.5s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.75rem;
+            letter-spacing: 0.38em;
+            text-transform: uppercase;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 0.68rem;
+            font-weight: 400;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--white); }
+
+        /* ── HERO ─────────────────────────────────────────────── */
+        .hero {
+            position: relative;
+            height: 100vh;
+            min-height: 700px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-video-wrap {
+            position: absolute;
+            inset: 0;
+        }
+
+        .hero-video-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Multi-layer vignette: top heavy, left/right edges, bottom fade to black */
+        .hero-video-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to bottom,
+                    rgba(0,0,0,0.92) 0%,
+                    rgba(0,0,0,0.0) 22%,
+                    rgba(0,0,0,0.0) 52%,
+                    rgba(0,0,0,0.75) 78%,
+                    rgba(0,0,0,1.0) 100%
+                ),
+                linear-gradient(to right,
+                    rgba(0,0,0,0.82) 0%,
+                    rgba(0,0,0,0.0) 14%,
+                    rgba(0,0,0,0.0) 86%,
+                    rgba(0,0,0,0.82) 100%
+                );
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding-bottom: 7rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .hero-label {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.8rem;
+            opacity: 0;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(4.5rem, 10.5vw, 10rem);
+            font-weight: 300;
+            line-height: 0.9;
+            letter-spacing: -0.02em;
+            margin-bottom: 2.2rem;
+        }
+
+        .hero-title .word {
+            display: block;
+            overflow: hidden;
+        }
+
+        .hero-title .word-inner {
+            display: block;
+            opacity: 0;
+            transform: translateY(72px);
+        }
+
+        .hero-title em {
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .hero-sub {
+            font-size: 0.88rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 3.2rem;
+            opacity: 0;
+        }
+
+        .btn {
+            display: inline-block;
+            font-family: var(--font-body);
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 1.15rem 3rem;
+            transition: background 0.35s, color 0.35s, border-color 0.35s;
+            opacity: 0;
+        }
+
+        .btn-solid {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        .btn-solid:hover {
+            background: var(--accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.22);
+        }
+
+        .btn-outline:hover {
+            background: var(--white);
+            color: var(--black);
+            border-color: var(--white);
+        }
+
+        .scroll-cue {
+            position: absolute;
+            bottom: 2.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+            opacity: 0;
+        }
+
+        .scroll-cue span {
+            font-size: 0.58rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .scroll-cue-line {
+            width: 1px;
+            height: 44px;
+            background: linear-gradient(to bottom, var(--muted), transparent);
+            animation: linePulse 2.2s ease-in-out infinite;
+        }
+
+        @keyframes linePulse {
+            0%, 100% { opacity: 0.25; transform: scaleY(1); transform-origin: top; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ── INTRO QUOTE ──────────────────────────────────────── */
+        .intro {
+            padding: 11rem 3.5rem 9rem;
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6rem;
+            align-items: end;
+        }
+
+        .intro-quote {
+            font-family: var(--font-display);
+            font-size: clamp(2.8rem, 5.5vw, 5rem);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.18;
+            list-style: none;
+        }
+
+        .intro-quote li {
+            overflow: hidden;
+        }
+
+        .intro-quote-inner {
+            display: block;
+            opacity: 0;
+            transform: translateY(42px);
+        }
+
+        .intro-side {
+            max-width: 300px;
+            padding-bottom: 0.5rem;
+        }
+
+        .intro-side p {
+            font-size: 0.85rem;
+            line-height: 1.95;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+            opacity: 0;
+            transform: translateY(18px);
+        }
+
+        /* ── FEATURES ─────────────────────────────────────────── */
+        .features {
+            padding: 8rem 3.5rem 10rem;
+            border-top: 1px solid var(--border);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 7rem;
+        }
+
+        .features-heading {
+            font-family: var(--font-display);
+            font-size: clamp(3.5rem, 5.5vw, 5.5rem);
+            font-weight: 300;
+            line-height: 0.95;
+            opacity: 0;
+            transform: translateX(-35px);
+        }
+
+        .section-eyebrow {
+            font-size: 0.62rem;
+            font-weight: 400;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .feature {
+            padding: 3rem 3.5rem 3rem 0;
+            border-right: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(28px);
+        }
+
+        .feature:nth-child(2) {
+            padding-left: 3.5rem;
+        }
+
+        .feature:last-child {
+            border-right: none;
+            padding-left: 3.5rem;
+            padding-right: 0;
+        }
+
+        .feature-roman {
+            font-family: var(--font-display);
+            font-size: 3.8rem;
+            font-weight: 300;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 1.8rem;
+            display: block;
+        }
+
+        .feature h3 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 400;
+            line-height: 1.15;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature p {
+            font-size: 0.84rem;
+            line-height: 1.95;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+        }
+
+        /* ── MARQUEE ──────────────────────────────────────────── */
+        .marquee-section {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            padding: 2.5rem 0;
+        }
+
+        .marquee-track {
+            display: flex;
+            white-space: nowrap;
+            animation: marquee 22s linear infinite;
+        }
+
+        .marquee-item {
+            font-family: var(--font-display);
+            font-size: clamp(4.5rem, 9vw, 7.5rem);
+            font-weight: 300;
+            font-style: italic;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255,255,255,0.12);
+            letter-spacing: 0.04em;
+            padding-right: 3rem;
+            flex-shrink: 0;
+        }
+
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* ── STATS ────────────────────────────────────────────── */
+        .stats {
+            padding: 9rem 3.5rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(22px);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .stat:last-child { border-right: none; }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: clamp(3.5rem, 6vw, 6rem);
+            font-weight: 300;
+            line-height: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .stat-num { display: inline; }
+
+        .stat-suffix {
+            font-size: 0.45em;
+            margin-top: 0.2em;
+            color: var(--accent);
+            margin-left: 0.05em;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 1.2rem;
+        }
+
+        /* ── PROCESS ──────────────────────────────────────────── */
+        .process {
+            padding: 10rem 3.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9rem;
+            align-items: center;
+        }
+
+        .process-eyebrow {
+            font-size: 0.62rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            display: block;
+            opacity: 0;
+        }
+
+        .process-heading {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 4.5vw, 4.8rem);
+            font-weight: 300;
+            line-height: 1.05;
+            margin-bottom: 2.5rem;
+            opacity: 0;
+            transform: translateX(-28px);
+        }
+
+        .process-body {
+            font-size: 0.86rem;
+            line-height: 2;
+            color: var(--muted);
+            margin-bottom: 3.5rem;
+            opacity: 0;
+        }
+
+        .steps {
+            opacity: 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 2.2rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            align-items: flex-start;
+        }
+
+        .step:first-child { border-top: 1px solid var(--border); }
+
+        .step-num {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: var(--accent);
+            flex-shrink: 0;
+            margin-top: 0.05rem;
+        }
+
+        .step h4 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 0.45rem;
+        }
+
+        .step p {
+            font-size: 0.8rem;
+            line-height: 1.85;
+            color: var(--muted);
+        }
+
+        .process-visual {
+            opacity: 0;
+            transform: translateX(28px);
+        }
+
+        .process-video-wrap {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 4/5;
+        }
+
+        .process-video-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Vignette for process video */
+        .process-video-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 35%),
+                linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 30%),
+                linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 25%),
+                linear-gradient(to left, rgba(0,0,0,0.4) 0%, transparent 25%);
+            pointer-events: none;
+        }
+
+        /* ── CTA ──────────────────────────────────────────────── */
+        .cta {
+            padding: 12rem 3.5rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .cta-eyebrow {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 2.5rem;
+            opacity: 0;
+        }
+
+        .cta-title {
+            font-family: var(--font-display);
+            font-size: clamp(4.5rem, 9vw, 9.5rem);
+            font-weight: 300;
+            line-height: 0.92;
+            margin-bottom: 3.5rem;
+        }
+
+        .cta-title .line {
+            display: block;
+            overflow: hidden;
+        }
+
+        .cta-title .line-inner {
+            display: block;
+            opacity: 0;
+            transform: translateY(60px);
+        }
+
+        .cta-sub {
+            font-size: 0.88rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+            margin-bottom: 4rem;
+            opacity: 0;
+        }
+
+        .cta-btn-wrap { opacity: 0; }
+
+        /* ── FOOTER ───────────────────────────────────────────── */
+        footer {
+            padding: 3.5rem 3.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-logo {
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.72rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .footer-links a {
+            font-size: 0.66rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.25s;
+        }
+
+        .footer-links a:hover { color: var(--white); }
+
+        .footer-copy {
+            font-size: 0.62rem;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- Nav -->
+    <nav id="nav">
+        <a href="#" class="nav-logo">Atelier</a>
+        <ul class="nav-links">
+            <li><a href="#craft">Craft</a></li>
+            <li><a href="#process">Process</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-video-wrap">
+            <video autoplay muted loop playsinline>
+                <source src="blender/Blender video.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="scroll-cue" id="scrollCue">
+            <span>Scroll</span>
+            <div class="scroll-cue-line"></div>
+        </div>
+        <div class="hero-content">
+            <span class="hero-label" id="heroLabel">001 — The Collection</span>
+            <h1 class="hero-title">
+                <span class="word"><span class="word-inner">Where Objects</span></span>
+                <span class="word"><span class="word-inner">Find Their</span></span>
+                <span class="word"><span class="word-inner"><em>Light.</em></span></span>
+            </h1>
+            <p class="hero-sub">Three-dimensional spaces for design that endures.</p>
+            <a href="#craft" class="btn btn-solid" id="heroCta">Explore the Studio</a>
+        </div>
+    </section>
+
+    <!-- Intro Quote -->
+    <section class="intro">
+        <blockquote class="intro-quote">
+            <li><span class="intro-quote-inner">"We render the space</span></li>
+            <li><span class="intro-quote-inner">between concept</span></li>
+            <li><span class="intro-quote-inner">and collection."</span></li>
+        </blockquote>
+        <div class="intro-side">
+            <p>Every object holds a story. We build the environments that tell it — with light, material, and spatial precision that transforms renders into experiences.</p>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="craft">
+        <div class="features-header">
+            <h2 class="features-heading">Our<br>Craft</h2>
+            <span class="section-eyebrow" style="opacity:1;">002 — Disciplines</span>
+        </div>
+        <div class="features-grid">
+            <div class="feature">
+                <span class="feature-roman">I</span>
+                <h3>Photorealistic<br>Rendering</h3>
+                <p>Every surface, shadow, and material rendered with exacting precision. We work in Blender and Cycles to achieve renders that are indistinguishable from photography.</p>
+            </div>
+            <div class="feature">
+                <span class="feature-roman">II</span>
+                <h3>Spatial<br>Storytelling</h3>
+                <p>Architecture and atmosphere are not backdrops — they are participants. We design environments that amplify the objects they contain.</p>
+            </div>
+            <div class="feature">
+                <span class="feature-roman">III</span>
+                <h3>Curated<br>Presentation</h3>
+                <p>From initial brief to final render, every decision is intentional. We bring the editorial eye of a gallery curator to every project we undertake.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="marquee-section">
+        <div class="marquee-track">
+            <span class="marquee-item">Design · Render · Present · Curate · Visualize ·&nbsp;</span>
+            <span class="marquee-item">Design · Render · Present · Curate · Visualize ·&nbsp;</span>
+            <span class="marquee-item">Design · Render · Present · Curate · Visualize ·&nbsp;</span>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="stat">
+            <div class="stat-value">
+                <span class="stat-num" data-target="240">0</span><span class="stat-suffix">+</span>
+            </div>
+            <span class="stat-label">Projects Rendered</span>
+        </div>
+        <div class="stat">
+            <div class="stat-value">
+                <span class="stat-num" data-target="48">0</span><span class="stat-suffix"></span>
+            </div>
+            <span class="stat-label">Design Brands</span>
+        </div>
+        <div class="stat">
+            <div class="stat-value">
+                <span class="stat-num" data-target="7">0</span><span class="stat-suffix"></span>
+            </div>
+            <span class="stat-label">Years of Practice</span>
+        </div>
+        <div class="stat">
+            <div class="stat-value">
+                <span class="stat-num" data-target="99">0</span><span class="stat-suffix">%</span>
+            </div>
+            <span class="stat-label">Client Retention</span>
+        </div>
+    </section>
+
+    <!-- Process -->
+    <section class="process" id="process">
+        <div class="process-left">
+            <span class="process-eyebrow">003 — How We Work</span>
+            <h2 class="process-heading">A Process<br>Built Around<br><em>Objects</em></h2>
+            <p class="process-body">We believe that great visualization begins with deep understanding — of the object, its context, and the story it needs to tell. Our process is collaborative, iterative, and always object-first.</p>
+            <div class="steps">
+                <div class="step">
+                    <span class="step-num">01</span>
+                    <div>
+                        <h4>Discovery & Brief</h4>
+                        <p>We begin by understanding your objects, your brand language, and the experience you want to create.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-num">02</span>
+                    <div>
+                        <h4>Environment Design</h4>
+                        <p>We build the spatial context — architecture, light, materials — that gives your objects their stage.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-num">03</span>
+                    <div>
+                        <h4>Render & Refine</h4>
+                        <p>Iterative rendering cycles until every shadow, reflection, and material reads exactly right.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="process-visual">
+            <div class="process-video-wrap">
+                <video autoplay muted loop playsinline>
+                    <source src="blender/Blender video.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="contact">
+        <span class="cta-eyebrow">004 — Begin</span>
+        <h2 class="cta-title">
+            <span class="line"><span class="line-inner">Begin Your</span></span>
+            <span class="line"><span class="line-inner"><em>Collection.</em></span></span>
+        </h2>
+        <p class="cta-sub">Every showroom starts with a conversation.</p>
+        <div class="cta-btn-wrap">
+            <a href="#" class="btn btn-outline">Request a Studio</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <span class="footer-logo">Atelier</span>
+        <ul class="footer-links">
+            <li><a href="#">Instagram</a></li>
+            <li><a href="#">Behance</a></li>
+            <li><a href="#">LinkedIn</a></li>
+        </ul>
+        <span class="footer-copy">© 2026 Atelier Studio. All rights reserved.</span>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        /* ── Custom Cursor ── */
+        const cursor = document.getElementById('cursor');
+        const ring = document.getElementById('cursorRing');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+        });
+
+        (function trackRing() {
+            rx += (mx - rx) * 0.1;
+            ry += (my - ry) * 0.1;
+            ring.style.left = rx + 'px';
+            ring.style.top = ry + 'px';
+            requestAnimationFrame(trackRing);
+        })();
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => { cursor.classList.add('grow'); ring.classList.add('grow'); });
+            el.addEventListener('mouseleave', () => { cursor.classList.remove('grow'); ring.classList.remove('grow'); });
+        });
+
+        /* ── Nav on scroll ── */
+        window.addEventListener('scroll', () => {
+            document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
+        });
+
+        /* ── Hero entrance ── */
+        const heroTl = gsap.timeline({ delay: 0.5 });
+        heroTl
+            .to('#heroLabel', { opacity: 1, duration: 1, ease: 'power2.out' })
+            .to('.word-inner', {
+                opacity: 1, y: 0, duration: 1.3,
+                stagger: 0.18, ease: 'power3.out'
+            }, '-=0.6')
+            .to('.hero-sub', { opacity: 1, duration: 0.9, ease: 'power2.out' }, '-=0.5')
+            .to('#heroCta', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.4')
+            .to('#scrollCue', { opacity: 1, duration: 0.8 }, '-=0.2');
+
+        /* ── Hero video parallax ── */
+        gsap.to('.hero-video-wrap', {
+            yPercent: 18,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+
+        /* ── Intro quote ── */
+        gsap.to('.intro-quote-inner', {
+            opacity: 1, y: 0, duration: 1.3,
+            stagger: 0.2, ease: 'power3.out',
+            scrollTrigger: { trigger: '.intro', start: 'top 76%' }
+        });
+
+        gsap.to('.intro-side p', {
+            opacity: 1, y: 0, duration: 1, ease: 'power2.out',
+            scrollTrigger: { trigger: '.intro', start: 'top 68%' }
+        });
+
+        /* ── Features ── */
+        gsap.to('.features-heading', {
+            opacity: 1, x: 0, duration: 1.2, ease: 'power3.out',
+            scrollTrigger: { trigger: '.features', start: 'top 76%' }
+        });
+
+        gsap.to('.feature', {
+            opacity: 1, y: 0, duration: 0.9, stagger: 0.14, ease: 'power2.out',
+            scrollTrigger: { trigger: '.features-grid', start: 'top 80%' }
+        });
+
+        /* ── Stats ── */
+        let statsTriggered = false;
+        gsap.to('.stat', {
+            opacity: 1, y: 0, duration: 0.85, stagger: 0.1, ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '.stats',
+                start: 'top 78%',
+                onEnter: () => {
+                    if (statsTriggered) return;
+                    statsTriggered = true;
+                    document.querySelectorAll('.stat-num').forEach(el => {
+                        const target = parseInt(el.getAttribute('data-target'));
+                        const obj = { val: 0 };
+                        gsap.to(obj, {
+                            val: target, duration: 2.5, ease: 'power2.out',
+                            onUpdate: () => { el.textContent = Math.round(obj.val); }
+                        });
+                    });
+                }
+            }
+        });
+
+        /* ── Process ── */
+        gsap.to('.process-eyebrow', {
+            opacity: 1, duration: 0.8,
+            scrollTrigger: { trigger: '.process', start: 'top 76%' }
+        });
+
+        gsap.to('.process-heading', {
+            opacity: 1, x: 0, duration: 1.2, ease: 'power3.out',
+            scrollTrigger: { trigger: '.process', start: 'top 72%' }
+        });
+
+        gsap.to('.process-body', {
+            opacity: 1, duration: 1, ease: 'power2.out',
+            scrollTrigger: { trigger: '.process', start: 'top 68%' }
+        });
+
+        gsap.to('.steps', {
+            opacity: 1, duration: 1, ease: 'power2.out',
+            scrollTrigger: { trigger: '.steps', start: 'top 80%' }
+        });
+
+        gsap.to('.process-visual', {
+            opacity: 1, x: 0, duration: 1.3, ease: 'power3.out',
+            scrollTrigger: { trigger: '.process', start: 'top 72%' }
+        });
+
+        /* ── CTA ── */
+        gsap.to('.cta-eyebrow', {
+            opacity: 1, duration: 0.8,
+            scrollTrigger: { trigger: '.cta', start: 'top 76%' }
+        });
+
+        gsap.to('.line-inner', {
+            opacity: 1, y: 0, duration: 1.3, stagger: 0.18, ease: 'power3.out',
+            scrollTrigger: { trigger: '.cta', start: 'top 72%' }
+        });
+
+        gsap.to('.cta-sub', {
+            opacity: 1, duration: 0.9, ease: 'power2.out',
+            scrollTrigger: { trigger: '.cta', start: 'top 66%' }
+        });
+
+        gsap.to('.cta-btn-wrap', {
+            opacity: 1, duration: 0.8,
+            scrollTrigger: { trigger: '.cta', start: 'top 63%' }
+        });
+    </script>
+</body>
+</html>

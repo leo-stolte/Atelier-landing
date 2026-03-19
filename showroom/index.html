@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Showroom — A Space for Considered Objects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white:  #ffffff;
+      --ink:    #1b1714;
+      --muted:  #968f86;
+      --dim:    #bab5ad;
+      --rule:   #e5e1db;
+      --sand:   #c5a97c;
+      --serif:  'Cormorant Garamond', Georgia, serif;
+      --sans:   'Jost', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-weight: 300;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Loader ──────────────────────────────────────────── */
+    #loader {
+      position: fixed; inset: 0;
+      background: var(--white);
+      z-index: 1000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 30px;
+      transition: opacity 0.9s ease, visibility 0.9s ease;
+    }
+    #loader.hidden { opacity: 0; visibility: hidden; }
+
+    .loader-wordmark {
+      font-family: var(--serif);
+      font-size: 0.9rem;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .loader-bar-wrap {
+      width: 200px; height: 1px;
+      background: var(--rule);
+      position: relative; overflow: hidden;
+    }
+    .loader-bar {
+      position: absolute; top: 0; left: 0;
+      height: 100%; width: 0%;
+      background: var(--ink);
+      transition: width 0.06s linear;
+    }
+    .loader-pct {
+      font-size: 0.58rem;
+      letter-spacing: 0.24em;
+      color: var(--muted);
+    }
+
+    /* ─── Fixed canvas ────────────────────────────────────── */
+    #frameCanvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0; display: block;
+    }
+
+    /* Bottom fade so white sections read cleanly */
+    .canvas-fade {
+      position: fixed; inset: 0; z-index: 1;
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0)    0%,
+        rgba(255,255,255,0)   38%,
+        rgba(255,255,255,0.1)  55%,
+        rgba(255,255,255,0.52) 72%,
+        rgba(255,255,255,1)   100%
+      );
+      pointer-events: none;
+    }
+
+    /* ─── Nav ─────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 50;
+      padding: 36px 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.5s ease, padding 0.4s ease, border-color 0.5s ease;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 18px 64px;
+      border-bottom-color: rgba(0,0,0,0.055);
+    }
+
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 0.92rem; font-weight: 400;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink); text-decoration: none;
+    }
+    .nav-right { display: flex; align-items: center; gap: 52px; }
+    .nav-links { display: flex; gap: 38px; list-style: none; }
+    .nav-links a {
+      font-size: 0.64rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      font-size: 0.64rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--ink);
+      text-decoration: none; padding: 11px 28px;
+      border: 1px solid rgba(0,0,0,0.18);
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    .nav-cta:hover { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+    /* ─── Page ────────────────────────────────────────────── */
+    #page { position: relative; z-index: 10; }
+
+    /* ─── Hero Zone ───────────────────────────────────────── */
+    /* 220vh container: panel sticks for 120vh, then exits upward */
+    #hero-zone { height: 220vh; }
+
+    .hero-sticky {
+      position: sticky; top: 0;
+      height: 100vh; min-height: 680px;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 64px 72px;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.6rem; letter-spacing: 0.34em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 22px;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+      text-shadow: 0 1px 12px rgba(255,255,255,0.9), 0 0 32px rgba(255,255,255,0.7);
+    }
+    .hero-eyebrow.show { opacity: 1; transform: none; }
+
+    .hero-heading {
+      font-family: var(--serif);
+      font-size: clamp(5rem, 9vw, 9.5rem);
+      font-weight: 300; line-height: 0.9;
+      letter-spacing: -0.02em; color: var(--ink);
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 1s ease 0.1s, transform 1s ease 0.1s;
+      text-shadow: 0 2px 24px rgba(255,255,255,0.85), 0 0 64px rgba(255,255,255,0.6);
+    }
+    .hero-heading.show { opacity: 1; transform: none; }
+    .hero-heading em { font-style: italic; color: var(--muted); }
+
+    .hero-sub-row {
+      margin-top: 36px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.9s ease 0.26s, transform 0.9s ease 0.26s;
+    }
+    .hero-sub-row.show { opacity: 1; transform: none; }
+
+    .hero-sub {
+      font-size: 0.78rem; line-height: 2;
+      color: var(--muted); max-width: 330px;
+      text-shadow: 0 1px 10px rgba(255,255,255,0.9), 0 0 28px rgba(255,255,255,0.65);
+    }
+
+    .scroll-hint {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .scroll-hint span {
+      font-size: 0.55rem; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--muted); opacity: 0.5;
+      text-shadow: 0 1px 8px rgba(255,255,255,0.9);
+    }
+    .progress-track {
+      width: 1px; height: 52px;
+      background: var(--rule); position: relative; overflow: hidden;
+    }
+    .progress-fill {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 0%;
+      background: var(--ink); transition: height 0.05s linear;
+    }
+
+    /* ─── Bridge Zone ─────────────────────────────────────── */
+    /* Transparent — canvas shows through — canvas at warm frames here */
+    #bridge-zone {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 100px 64px;
+    }
+
+    .bridge-statement {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 4.8vw, 5rem);
+      font-weight: 300; font-style: italic;
+      line-height: 1.18; text-align: center;
+      color: var(--ink); max-width: 780px;
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+      text-shadow: 0 2px 20px rgba(255,255,255,0.9), 0 0 56px rgba(255,255,255,0.75);
+    }
+    .bridge-statement.in { opacity: 1; transform: none; }
+
+    /* ─── White content ───────────────────────────────────── */
+    .content-wrap { background: var(--white); position: relative; }
+
+    .content-wrap::before {
+      content: ''; display: block;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--white));
+      margin-top: -80px; pointer-events: none;
+    }
+
+    /* ─── Section label ───────────────────────────────────── */
+    .section-label {
+      font-size: 0.58rem; letter-spacing: 0.34em;
+      text-transform: uppercase; color: var(--dim);
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 40px;
+    }
+    .section-label::before {
+      content: ''; display: block;
+      width: 24px; height: 1px;
+      background: var(--rule); flex-shrink: 0;
+    }
+
+    /* ─── Reveal animations ───────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal.from-left  { transform: translateX(-22px); }
+    .reveal.from-right { transform: translateX(22px); }
+    .reveal.in { opacity: 1 !important; transform: translate(0) !important; }
+
+    /* ─── Intro ───────────────────────────────────────────── */
+    .intro {
+      padding: 104px 64px 132px;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .intro-statement {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 4vw, 4.5rem);
+      font-weight: 300; line-height: 1.2;
+      color: var(--ink); max-width: 860px;
+    }
+    .intro-statement em { font-style: italic; color: var(--muted); }
+
+    /* ─── Divider ─────────────────────────────────────────── */
+    .divider {
+      height: 1px; background: var(--rule);
+      max-width: 1200px; margin: 0 auto;
+      width: calc(100% - 128px);
+    }
+
+    /* ─── Pillars ─────────────────────────────────────────── */
+    .pillars {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 64px 144px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+    }
+    .pillar {
+      padding: 76px 56px 76px 0;
+      border-right: 1px solid var(--rule);
+    }
+    .pillar:last-child { border-right: none; padding-right: 0; padding-left: 56px; }
+    .pillar:nth-child(2) { padding-left: 56px; }
+
+    .pillar-num {
+      font-size: 0.55rem; letter-spacing: 0.26em;
+      color: var(--dim); display: block; margin-bottom: 32px;
+    }
+    .pillar-title {
+      font-family: var(--serif);
+      font-size: 2.2rem; font-weight: 400;
+      line-height: 1.02; margin-bottom: 18px;
+    }
+    .pillar-text {
+      font-size: 0.8rem; line-height: 2;
+      color: var(--muted);
+    }
+
+    /* ─── Gallery grid ────────────────────────────────────── */
+    .gallery {
+      max-width: 1200px; margin: 0 auto 144px;
+      padding: 0 64px;
+      display: grid;
+      grid-template-columns: 3fr 2fr 2fr;
+      grid-template-rows: 290px 290px;
+      gap: 4px;
+    }
+    .gallery-item {
+      overflow: hidden; background: #eeebe7;
+      position: relative;
+    }
+    .gallery-item:first-child { grid-row: 1 / 3; }
+    .gallery-item img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
+      transition: transform 0.95s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    /* ─── Marquee ─────────────────────────────────────────── */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 22px 0; margin-bottom: 144px;
+    }
+    .marquee-track {
+      display: flex; white-space: nowrap;
+      animation: marquee 36s linear infinite;
+    }
+    .marquee-item {
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 5.5vw, 5.5rem);
+      font-weight: 300; font-style: italic;
+      color: var(--ink); opacity: 0.13;
+      padding: 0 56px; flex-shrink: 0; user-select: none;
+    }
+    .marquee-item.dot { font-style: normal; opacity: 0.18; color: var(--sand); padding: 0 16px; }
+
+    /* ─── Process ─────────────────────────────────────────── */
+    .process {
+      display: grid; grid-template-columns: 1fr 1fr;
+      max-width: 1200px; margin: 0 auto 144px;
+      padding: 0 64px; gap: 100px; align-items: center;
+    }
+    .process-text .section-label { margin-bottom: 28px; }
+
+    .process-heading {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 3.6vw, 3.9rem);
+      font-weight: 300; line-height: 1.08;
+      margin-bottom: 24px;
+    }
+    .process-heading em { font-style: italic; color: var(--muted); }
+
+    .process-body {
+      font-size: 0.8rem; line-height: 2.05;
+      color: var(--muted); margin-bottom: 40px;
+      max-width: 370px;
+    }
+
+    .link-arrow {
+      font-size: 0.64rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--ink);
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 14px;
+      transition: gap 0.35s ease;
+    }
+    .link-arrow::after { content: '→'; transition: transform 0.35s ease; }
+    .link-arrow:hover { gap: 22px; }
+    .link-arrow:hover::after { transform: translateX(4px); }
+
+    .process-visual {
+      aspect-ratio: 4/5; overflow: hidden;
+      background: #eeebe7; position: relative;
+    }
+    .process-frame {
+      width: 100%; height: 112%;
+      object-fit: cover; object-position: center 0%;
+      display: block;
+      will-change: transform;
+    }
+    .process-caption {
+      position: absolute; bottom: 22px; left: 22px;
+      font-size: 0.55rem; letter-spacing: 0.26em;
+      text-transform: uppercase; color: rgba(0,0,0,0.26);
+    }
+
+    /* ─── Stats ───────────────────────────────────────────── */
+    .stats {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      max-width: 1200px; margin: 0 auto 144px;
+      padding: 0 64px;
+    }
+    .stat-item {
+      padding: 76px 0;
+      border-right: 1px solid var(--rule);
+      text-align: center;
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 5rem; font-weight: 300; line-height: 1;
+      color: var(--ink);
+      display: flex; justify-content: center; align-items: flex-start; gap: 4px;
+    }
+    .stat-suf { font-size: 2.1rem; margin-top: 14px; color: var(--sand); }
+    .stat-label {
+      font-size: 0.59rem; letter-spacing: 0.24em;
+      text-transform: uppercase; color: var(--muted);
+      margin-top: 16px;
+    }
+
+    /* ─── Panorama ────────────────────────────────────────── */
+    .panorama {
+      max-width: 1200px; margin: 0 auto 144px;
+      padding: 0 64px;
+      position: relative; aspect-ratio: 21/7; overflow: hidden;
+    }
+    .panorama img {
+      width: 100%; height: 115%;
+      object-fit: cover; object-position: center 0%;
+      display: block;
+      will-change: transform;
+    }
+    .panorama-fade {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.45) 0%, transparent 16%,
+        transparent 84%, rgba(255,255,255,0.45) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* ─── CTA ─────────────────────────────────────────────── */
+    .cta {
+      max-width: 680px; margin: 0 auto;
+      padding: 0 64px 164px; text-align: center;
+    }
+    .cta .section-label { justify-content: center; margin-bottom: 32px; }
+    .cta .section-label::before { display: none; }
+
+    .cta-heading {
+      font-family: var(--serif);
+      font-size: clamp(3.2rem, 5.5vw, 5.8rem);
+      font-weight: 300; line-height: 1.04;
+      margin-bottom: 28px;
+    }
+    .cta-heading em { font-style: italic; color: var(--muted); }
+
+    .cta-body {
+      font-size: 0.82rem; line-height: 2.05;
+      color: var(--muted); margin-bottom: 52px;
+    }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; }
+
+    .btn-primary {
+      font-size: 0.64rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--white);
+      background: var(--ink); padding: 15px 44px;
+      text-decoration: none; display: inline-block;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .btn-primary:hover { background: #302a24; transform: translateY(-2px); }
+
+    .btn-secondary {
+      font-size: 0.64rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--ink);
+      text-decoration: none; padding: 15px 38px;
+      border: 1px solid var(--rule); display: inline-block;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .btn-secondary:hover { border-color: var(--ink); transform: translateY(-2px); }
+
+    /* ─── Footer ──────────────────────────────────────────── */
+    footer {
+      padding: 36px 64px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid var(--rule);
+    }
+    .footer-brand {
+      font-family: var(--serif); font-size: 0.88rem;
+      font-weight: 400; letter-spacing: 0.24em; text-transform: uppercase;
+    }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a {
+      font-size: 0.59rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--ink); }
+    .footer-copy { font-size: 0.59rem; letter-spacing: 0.06em; color: var(--dim); }
+
+    /* ─── Keyframes ───────────────────────────────────────── */
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── Responsive ──────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      nav, nav.scrolled { padding: 22px 32px; }
+      .nav-links { display: none; }
+      .hero-sticky { padding: 0 32px 52px; }
+      #bridge-zone { padding: 80px 32px; }
+      .intro { padding: 80px 32px 104px; }
+      .divider { width: calc(100% - 64px); }
+      .pillars { grid-template-columns: 1fr; padding: 0 32px 80px; }
+      .pillar { border-right: none; border-bottom: 1px solid var(--rule); padding: 44px 0; }
+      .pillar:first-child, .pillar:nth-child(2), .pillar:last-child { padding-left: 0; padding-right: 0; }
+      .pillar:last-child { border-bottom: none; }
+      .gallery {
+        grid-template-columns: 1fr 1fr; grid-template-rows: auto;
+        padding: 0 32px; margin-bottom: 88px;
+      }
+      .gallery-item:first-child { grid-row: auto; grid-column: 1 / 3; height: 260px; }
+      .gallery-item { height: 180px; }
+      .process { grid-template-columns: 1fr; gap: 48px; padding: 0 32px; margin-bottom: 88px; }
+      .process-visual { aspect-ratio: 16/10; }
+      .stats { grid-template-columns: 1fr 1fr; padding: 0 32px; margin-bottom: 88px; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--rule); }
+      .stat-item:last-child, .stat-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+      .panorama { padding: 0 32px; aspect-ratio: 16/7; margin-bottom: 88px; }
+      .cta { padding: 0 32px 104px; }
+      .cta-actions { flex-direction: column; align-items: center; }
+      footer { flex-direction: column; gap: 20px; text-align: center; padding: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loader -->
+  <div id="loader">
+    <span class="loader-wordmark">The Showroom</span>
+    <div class="loader-bar-wrap">
+      <div class="loader-bar" id="loaderBar"></div>
+    </div>
+    <span class="loader-pct" id="loaderPct">0%</span>
+  </div>
+
+  <!-- Fixed canvas — always behind everything -->
+  <canvas id="frameCanvas"></canvas>
+  <div class="canvas-fade"></div>
+
+  <!-- Nav -->
+  <nav id="nav">
+    <a class="nav-logo" href="#">The Showroom</a>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#collection">Collection</a></li>
+        <li><a href="#contact">Visit</a></li>
+      </ul>
+      <a class="nav-cta" href="#contact">Book a Visit</a>
+    </div>
+  </nav>
+
+  <!-- Page -->
+  <div id="page">
+
+    <!-- ══ CANVAS ZONE — no background, frames show through ══ -->
+
+    <!-- Hero zone: 220vh, hero panel sticks for 120vh then exits upward -->
+    <section id="hero-zone">
+      <div class="hero-sticky" id="heroSticky">
+        <p class="hero-eyebrow" id="heroEyebrow">Collection 2026 — A Space for Considered Objects</p>
+        <h1 class="hero-heading" id="heroHeading">
+          The<br><em>Showroom</em>
+        </h1>
+        <div class="hero-sub-row" id="heroSubRow">
+          <p class="hero-sub">A curated environment where objects, materials,<br>and spaces are chosen with absolute precision.</p>
+          <div class="scroll-hint">
+            <span>Scroll</span>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bridge: appears as canvas warms to golden light -->
+    <section id="bridge-zone">
+      <p class="bridge-statement reveal" id="bridgeStatement">
+        A private space for those<br>who seek less — but so much better.
+      </p>
+    </section>
+
+    <!-- ══ WHITE CONTENT — covers canvas as it scrolls up ══ -->
+    <div class="content-wrap">
+
+      <!-- Intro -->
+      <section class="intro" id="about">
+        <div class="section-label reveal">Our Philosophy</div>
+        <p class="intro-statement reveal" style="transition-delay:.09s">
+          We believe the spaces around us shape how we think, create, and feel. Every object here is a <em>deliberate invitation</em> — to slow down, to notice, to inhabit life more fully.
+        </p>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- Pillars -->
+      <div class="pillars" id="collection">
+        <div class="pillar reveal">
+          <span class="pillar-num">001</span>
+          <h3 class="pillar-title">Spatial<br>Restraint</h3>
+          <p class="pillar-text">White walls. Oak floors. Recessed light. Our architecture is intentionally minimal — a backdrop that lets each object breathe and speak for itself.</p>
+        </div>
+        <div class="pillar reveal" style="transition-delay:.1s">
+          <span class="pillar-num">002</span>
+          <h3 class="pillar-title">Material<br>Integrity</h3>
+          <p class="pillar-text">We select objects made honestly — ceramic, stone, linen, wood. Materials that carry the mark of their making. Nothing synthetic, nothing superfluous.</p>
+        </div>
+        <div class="pillar reveal" style="transition-delay:.2s">
+          <span class="pillar-num">003</span>
+          <h3 class="pillar-title">Living<br>with Less</h3>
+          <p class="pillar-text">The objects we choose are fewer, better. Things that last, that improve, that become part of a life. Considered accumulation — the opposite of clutter.</p>
+        </div>
+      </div>
+
+      <!-- Gallery grid -->
+      <div class="gallery">
+        <div class="gallery-item reveal">
+          <img src="frames/frame_000008.jpg" alt="Showroom ceramics" loading="lazy" />
+        </div>
+        <div class="gallery-item reveal" style="transition-delay:.07s">
+          <img src="frames/frame_000044.jpg" alt="Showroom objects" loading="lazy" />
+        </div>
+        <div class="gallery-item reveal" style="transition-delay:.12s">
+          <img src="frames/frame_000066.jpg" alt="Showroom space" loading="lazy" />
+        </div>
+        <div class="gallery-item reveal" style="transition-delay:.17s">
+          <img src="frames/frame_000092.jpg" alt="Showroom light" loading="lazy" />
+        </div>
+        <div class="gallery-item reveal" style="transition-delay:.22s">
+          <img src="frames/frame_000112.jpg" alt="Showroom detail" loading="lazy" />
+        </div>
+      </div>
+
+      <!-- Marquee -->
+      <div class="marquee-wrap">
+        <div class="marquee-track">
+          <span class="marquee-item">Considered Objects</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Material Honesty</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Refined Spaces</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Quiet Design</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Considered Objects</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Material Honesty</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Refined Spaces</span>
+          <span class="marquee-item dot">·</span>
+          <span class="marquee-item">Quiet Design</span>
+          <span class="marquee-item dot">·</span>
+        </div>
+      </div>
+
+      <!-- Process -->
+      <div class="process" id="process">
+        <div class="process-text reveal from-left">
+          <div class="section-label">The Experience</div>
+          <h2 class="process-heading">Designed to<br><em>Be Discovered</em></h2>
+          <p class="process-body">
+            Our showroom is not a shop — it is a destination. Each visit is an unhurried encounter with things worth owning. We invite you to touch, to study, to sit with an object before deciding it belongs in your life.
+          </p>
+          <a class="link-arrow" href="#contact">Arrange a private visit</a>
+        </div>
+        <div class="process-visual reveal from-right" id="processVisual">
+          <img class="process-frame" src="frames/frame_000056.jpg" alt="The showroom" id="processFrame" />
+          <span class="process-caption">Current Collection · 2026</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-item reveal">
+          <div class="stat-num"><span class="count" data-target="12">0</span><span class="stat-suf">+</span></div>
+          <p class="stat-label">Years Curating</p>
+        </div>
+        <div class="stat-item reveal" style="transition-delay:.08s">
+          <div class="stat-num"><span class="count" data-target="340">0</span></div>
+          <p class="stat-label">Objects in Collection</p>
+        </div>
+        <div class="stat-item reveal" style="transition-delay:.16s">
+          <div class="stat-num"><span class="count" data-target="28">0</span></div>
+          <p class="stat-label">Artisan Partners</p>
+        </div>
+        <div class="stat-item reveal" style="transition-delay:.24s">
+          <div class="stat-num"><span class="count" data-target="100">0</span><span class="stat-suf">%</span></div>
+          <p class="stat-label">Made to Last</p>
+        </div>
+      </div>
+
+      <!-- Panorama -->
+      <div class="panorama reveal" id="panoramaWrap">
+        <img src="frames/frame_000082.jpg" alt="The showroom space" id="panoramaImg" loading="lazy" />
+        <div class="panorama-fade"></div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta reveal" id="contact">
+        <div class="section-label">Visit The Showroom</div>
+        <h2 class="cta-heading">An Invitation<br><em>to Experience</em></h2>
+        <p class="cta-body">
+          We open by appointment — ensuring each visitor receives our complete attention. Visits are unhurried, personal, and often life-changing.
+        </p>
+        <div class="cta-actions">
+          <a class="btn-primary" href="mailto:hello@theshowroom.com">Request an Appointment</a>
+          <a class="btn-secondary" href="#">View the Collection</a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer>
+        <span class="footer-brand">The Showroom</span>
+        <ul class="footer-links">
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Pinterest</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+        <span class="footer-copy">© 2026 The Showroom. All rights reserved.</span>
+      </footer>
+
+    </div><!-- /content-wrap -->
+  </div><!-- /page -->
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════
+       FRAME ENGINE
+       Canvas is position:fixed — never moves.
+       121 frames scrub over a 320vh scroll distance.
+       Hero panel is sticky: visible 0-120vh, then exits upward.
+       Bridge section is transparent — warm canvas shows through.
+       White content sections cover canvas as they scroll in.
+    ═══════════════════════════════════════════════════════════ */
+
+    const TOTAL_FRAMES  = 121;
+    const frames        = new Array(TOTAL_FRAMES);
+    let loadedCount     = 0;
+    let currentIndex    = 0;
+    let needsDraw       = true;
+
+    const canvas    = document.getElementById('frameCanvas');
+    const ctx       = canvas.getContext('2d');
+    const loader    = document.getElementById('loader');
+    const loaderBar = document.getElementById('loaderBar');
+    const loaderPct = document.getElementById('loaderPct');
+    const navEl     = document.getElementById('nav');
+    const fillEl    = document.getElementById('progressFill');
+
+    /* — Canvas sizing — */
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      needsDraw = true;
+    }
+
+    /* — Cover-fit draw — */
+    function drawFrame(img) {
+      if (!img || !img.complete || !img.naturalWidth) return;
+      const cw = canvas.width,  ch = canvas.height;
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const scale = Math.max(cw / iw, ch / ih);
+      const dw = iw * scale, dh = ih * scale;
+      ctx.drawImage(img, (cw - dw) * 0.5, (ch - dh) * 0.5, dw, dh);
+    }
+
+    /* — Preload — */
+    function preload() {
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        const img = new Image();
+        const idx = i;
+        img.onload = () => {
+          loadedCount++;
+          const pct = Math.round(loadedCount / TOTAL_FRAMES * 100);
+          loaderBar.style.width = pct + '%';
+          loaderPct.textContent = pct + '%';
+          if (loadedCount === 1) drawFrame(frames[0]);
+          if (loadedCount === TOTAL_FRAMES) onReady();
+        };
+        img.src = `frames/frame_${String(idx).padStart(6, '0')}.jpg`;
+        frames[idx] = img;
+      }
+    }
+
+    function onReady() {
+      setTimeout(() => {
+        loader.classList.add('hidden');
+        document.getElementById('heroEyebrow').classList.add('show');
+        setTimeout(() => document.getElementById('heroHeading').classList.add('show'), 120);
+        setTimeout(() => document.getElementById('heroSubRow').classList.add('show'), 260);
+      }, 300);
+    }
+
+    /* — Scroll handler — */
+    function onScroll() {
+      const vh = window.innerHeight;
+      const sy = window.scrollY;
+
+      /* Frame scrub: all 121 frames over 0-320vh */
+      const scrubEnd  = vh * 3.2;
+      const progress  = Math.max(0, Math.min(1, sy / scrubEnd));
+      const target    = Math.round(progress * (TOTAL_FRAMES - 1));
+
+      /* Progress bar (tracks first 100vh only) */
+      fillEl.style.height = (Math.min(sy / vh, 1) * 100) + '%';
+
+      /* Nav state */
+      navEl.classList.toggle('scrolled', sy > vh * 0.45);
+
+      if (target !== currentIndex) {
+        currentIndex = target;
+        needsDraw    = true;
+      }
+
+      /* Hero text fade — begins at 70vh, complete at 150vh */
+      const heroFade = Math.max(0, 1 - Math.max(0, sy - vh * 0.7) / (vh * 0.75));
+      const eyebrow  = document.getElementById('heroEyebrow');
+      const heading  = document.getElementById('heroHeading');
+      const subRow   = document.getElementById('heroSubRow');
+      if (eyebrow) eyebrow.style.opacity = heroFade;
+      if (heading) heading.style.opacity = heroFade;
+      if (subRow)  subRow.style.opacity  = heroFade;
+
+      /* Parallax on static images */
+      parallax('processVisual',  'processFrame',  0.14);
+      parallax('panoramaWrap',   'panoramaImg',   0.18);
+    }
+
+    /* — Parallax helper — */
+    function parallax(wrapId, imgId, speed) {
+      const wrap = document.getElementById(wrapId);
+      const img  = document.getElementById(imgId);
+      if (!wrap || !img) return;
+      const rect   = wrap.getBoundingClientRect();
+      const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+      img.style.transform = `translateY(${center * speed}px)`;
+    }
+
+    /* — RAF render loop — */
+    function renderLoop() {
+      if (needsDraw && frames[currentIndex]?.complete) {
+        drawFrame(frames[currentIndex]);
+        needsDraw = false;
+      }
+      requestAnimationFrame(renderLoop);
+    }
+
+    /* — Scroll reveal — */
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          revealObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -44px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    /* — Counters — */
+    function animCount(el) {
+      const target = +el.dataset.target;
+      const dur    = 1900;
+      const t0     = performance.now();
+      const ease   = t => 1 - Math.pow(1 - t, 3);
+      (function tick(now) {
+        const t = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.round(ease(t) * target);
+        if (t < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+
+    const counterObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.count').forEach(animCount);
+          counterObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.stats').forEach(el => counterObs.observe(el));
+
+    /* — Init — */
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas, { passive: true });
+    window.addEventListener('scroll', onScroll,     { passive: true });
+    renderLoop();
+    preload();
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Videos
+*.mp4
+*.mov
+*.avi
+*.webm
+
+# macOS
+.DS_Store
+
+# Frames (large image sets)
+showroom/frames/
+Template 1/frames/
