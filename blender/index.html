@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEX Pro — Premium Blender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,300&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #e8622a;
+            --accent-dim: rgba(232, 98, 42, 0.12);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 200;
+            padding: 28px 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.5s ease, border-color 0.5s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.scrolled {
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+
+        .nav-logo {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 44px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: #fff; }
+
+        .nav-order {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-order:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 30px rgba(255,255,255,0.15);
+        }
+
+        /* ─── HERO ─── */
+        #hero-scroll {
+            height: 700vh;
+            position: relative;
+        }
+
+        #hero-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #blender-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(680px, 90vw);
+            height: min(680px, 90vw);
+            display: block;
+        }
+
+        /* Top hero copy */
+        .hero-top {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding-top: 130px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .eyebrow {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.38);
+            margin-bottom: 18px;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: fadeUp 0.9s 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        .hero-title {
+            font-size: clamp(60px, 9vw, 112px);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 0.93;
+            margin-bottom: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        .hero-sub {
+            font-size: 16px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.04em;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: fadeUp 1s 0.85s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        /* Bottom scroll cue */
+        .hero-bottom {
+            position: absolute;
+            bottom: 52px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeUp 1s 1.3s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        .scroll-hint-label {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 52px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+            animation: scrollPulse 2.2s ease-in-out infinite;
+            transform-origin: top;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.35; transform: scaleY(1); }
+            50%       { opacity: 1;    transform: scaleY(1.12); }
+        }
+
+        /* Floating side annotations (appear mid-scroll) */
+        .side-annotation {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+            max-width: 260px;
+            opacity: 0;
+            transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .side-annotation.left {
+            left: 7vw;
+            top: 50%;
+            transform: translateY(calc(-50% + 24px));
+        }
+
+        .side-annotation.right {
+            right: 7vw;
+            top: 50%;
+            transform: translateY(calc(-50% + 24px));
+            text-align: right;
+        }
+
+        .side-annotation.visible {
+            opacity: 1;
+        }
+
+        .side-annotation.left.visible  { transform: translateY(-50%); }
+        .side-annotation.right.visible { transform: translateY(-50%); }
+
+        .anno-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .anno-heading {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .anno-body {
+            font-size: 13px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.42);
+            font-weight: 400;
+        }
+
+        /* Thin horizontal rule connector lines */
+        .anno-line {
+            position: absolute;
+            top: 50%;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255,255,255,0.12), transparent);
+            width: 60px;
+            opacity: 0;
+            transition: opacity 0.7s ease;
+        }
+
+        .anno-line.left-line  { right: -68px; }
+        .anno-line.right-line { left: -68px; background: linear-gradient(to left, rgba(255,255,255,0.12), transparent); }
+
+        .side-annotation.visible .anno-line { opacity: 1; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── DIVIDER FADE ─── */
+        .fade-divider {
+            height: 200px;
+            background: linear-gradient(to bottom, #000 0%, transparent 50%, #000 100%);
+            pointer-events: none;
+        }
+
+        /* ─── SECTION SHARED ─── */
+        section { position: relative; }
+
+        .section-tag {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 18px;
+        }
+
+        .section-heading {
+            font-size: clamp(36px, 5vw, 66px);
+            font-weight: 900;
+            letter-spacing: -0.035em;
+            line-height: 1.0;
+        }
+
+        .section-lead {
+            font-size: 16px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.42);
+            line-height: 1.75;
+            max-width: 520px;
+        }
+
+        /* ─── FEATURES ─── */
+        #features {
+            padding: 160px 56px 120px;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 90px;
+        }
+
+        .features-header .section-lead {
+            margin: 20px auto 0;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.055);
+            padding: 44px 38px 40px;
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(36px);
+            transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.75s cubic-bezier(0.16,1,0.3,1),
+                        background 0.3s;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at top left, rgba(255,255,255,0.035), transparent 60%);
+            pointer-events: none;
+        }
+
+        .feature-card.revealed { opacity: 1; transform: translateY(0); }
+        .feature-card:hover    { background: rgba(255,255,255,0.05); }
+
+        .feat-icon {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 26px;
+            color: var(--accent);
+            stroke-width: 1.4;
+        }
+
+        .feat-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 13px;
+        }
+
+        .feat-desc {
+            font-size: 13.5px;
+            color: rgba(255,255,255,0.4);
+            line-height: 1.8;
+        }
+
+        /* ─── STATS BAND ─── */
+        #stats {
+            padding: 120px 56px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stats-inner {
+            max-width: 1160px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.65s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .stat-item.revealed { opacity: 1; transform: translateY(0); }
+
+        .stat-num {
+            font-size: clamp(52px, 6.5vw, 80px);
+            font-weight: 900;
+            letter-spacing: -0.045em;
+            line-height: 1;
+            background: linear-gradient(150deg, #fff 20%, rgba(255,255,255,0.38) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-unit {
+            font-size: 0.36em;
+            font-weight: 400;
+            opacity: 0.55;
+            vertical-align: super;
+            -webkit-text-fill-color: rgba(255,255,255,0.55);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+        }
+
+        /* ─── SPECS ─── */
+        #specs {
+            padding: 140px 56px;
+        }
+
+        .specs-inner {
+            max-width: 1160px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .specs-copy .section-heading { margin-bottom: 60px; }
+
+        .spec-list { width: 100%; }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            opacity: 0;
+            transform: translateX(-18px);
+            transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.55s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .spec-row.revealed { opacity: 1; transform: translateX(0); }
+
+        .spec-key {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            font-weight: 400;
+        }
+
+        .spec-val {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            text-align: right;
+        }
+
+        .specs-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateX(36px);
+            transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.9s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        .specs-visual.revealed { opacity: 1; transform: translateX(0); }
+
+        .specs-visual img {
+            width: 100%;
+            max-width: 420px;
+            display: block;
+            border-radius: 20px;
+        }
+
+        /* ─── CTA ─── */
+        #cta {
+            padding: 200px 56px 180px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #cta::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(232,98,42,0.07) 0%, transparent 68%);
+            pointer-events: none;
+        }
+
+        .cta-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-title {
+            font-size: clamp(56px, 9vw, 120px);
+            font-weight: 900;
+            letter-spacing: -0.045em;
+            line-height: 0.92;
+            margin-bottom: 28px;
+        }
+
+        .cta-sub {
+            font-size: 16px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.38);
+            margin-bottom: 56px;
+            letter-spacing: 0.02em;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 18px 44px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.22s, box-shadow 0.22s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 60px rgba(255,255,255,0.18);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.14);
+            padding: 18px 44px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: border-color 0.22s, color 0.22s;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.38);
+            color: #fff;
+        }
+
+        .cta-price {
+            margin-top: 44px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            padding: 44px 56px;
+            border-top: 1px solid rgba(255,255,255,0.055);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            font-size: 12px;
+            color: rgba(255,255,255,0.32);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+        .footer-copy {
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.03em;
+        }
+
+        /* ─── LOADING OVERLAY ─── */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 24px;
+            transition: opacity 0.6s ease;
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .loader-bar-track {
+            width: 160px;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loader-bar-fill {
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+
+        .loader-pct {
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loader">
+        <div class="loader-logo">Vortex</div>
+        <div class="loader-bar-track">
+            <div class="loader-bar-fill" id="loader-bar"></div>
+        </div>
+        <div class="loader-pct" id="loader-pct">0%</div>
+    </div>
+
+    <!-- NAV -->
+    <nav id="navbar">
+        <a href="#" class="nav-logo">Vortex</a>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#specs">Specs</a></li>
+            <li><a href="#cta">Order</a></li>
+        </ul>
+        <button class="nav-order">Order Now — $599</button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════
+         HERO — SCROLL-DRIVEN FRAME ANIMATION
+    ═══════════════════════════════════════ -->
+    <section id="hero-scroll">
+        <div id="hero-sticky">
+
+            <!-- Frame canvas -->
+            <canvas id="blender-canvas" width="800" height="800"></canvas>
+
+            <!-- Static headline -->
+            <div class="hero-top">
+                <p class="eyebrow">Introducing VORTEX Pro</p>
+                <h1 class="hero-title">Blend the<br>extraordinary.</h1>
+                <p class="hero-sub">Professional-grade power. Refined to perfection.</p>
+            </div>
+
+            <!-- Annotation: lid opens / fruits fall (frame ~25–65%) -->
+            <div class="side-annotation left" id="anno-left">
+                <div class="anno-line left-line"></div>
+                <p class="anno-label">Naturally Fresh</p>
+                <h3 class="anno-heading">Drop in your favorites.</h3>
+                <p class="anno-body">Load whole fruits, vegetables, and superfoods. The wide-mouth glass jar fits even the largest ingredients without cutting.</p>
+            </div>
+
+            <!-- Annotation: full jar (frame ~65–100%) -->
+            <div class="side-annotation right" id="anno-right">
+                <div class="anno-line right-line"></div>
+                <p class="anno-label">Precision Loading</p>
+                <h3 class="anno-heading">Loaded to the brim.</h3>
+                <p class="anno-body">2L borosilicate glass. Crystal-clear, dishwasher-safe, and completely BPA-free — flavors stay pure every time.</p>
+            </div>
+
+            <!-- Scroll cue -->
+            <div class="hero-bottom">
+                <div class="scroll-line"></div>
+                <span class="scroll-hint-label">Scroll</span>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         FEATURES
+    ═══════════════════════════════════════ -->
+    <section id="features">
+        <div class="features-header">
+            <p class="section-tag">Why VORTEX</p>
+            <h2 class="section-heading">Built different.<br>In every way.</h2>
+            <p class="section-lead">From the motor to the blade, every detail is engineered to outperform — and to outlast.</p>
+        </div>
+
+        <div class="features-grid">
+
+            <div class="feature-card" data-delay="0">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                <h3 class="feat-title">2200W Motor</h3>
+                <p class="feat-desc">Our most powerful motor yet. Pulverises ice, whole nuts, and frozen produce in under 60 seconds — quietly and efficiently.</p>
+            </div>
+
+            <div class="feature-card" data-delay="120">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M8 12l2 2 4-4"/>
+                </svg>
+                <h3 class="feat-title">Borosilicate Glass</h3>
+                <p class="feat-desc">Crystal-clear, scratch-resistant, and 100% BPA-free. Withstands thermal shock, dishwasher-safe, and built to last decades.</p>
+            </div>
+
+            <div class="feature-card" data-delay="240">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <h3 class="feat-title">Smart Safety Lock</h3>
+                <p class="feat-desc">Magnetic sensors ensure the blade won't engage unless the lid is fully sealed. Improper assembly is caught before it starts.</p>
+            </div>
+
+            <div class="feature-card" data-delay="0">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                </svg>
+                <h3 class="feat-title">10 Speed Modes</h3>
+                <p class="feat-desc">From gentle pulses to full tornado mode. Precision-machined dial gives total control over texture, consistency, and blend time.</p>
+            </div>
+
+            <div class="feature-card" data-delay="120">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3"/>
+                    <path d="M3 9h18M9 21V9"/>
+                </svg>
+                <h3 class="feat-title">Brushed Titanium</h3>
+                <p class="feat-desc">Aerospace-grade titanium base with a satin finish. Fingerprint-resistant, corrosion-proof, and unmistakably premium.</p>
+            </div>
+
+            <div class="feature-card" data-delay="240">
+                <svg class="feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12l2 2 4-4"/>
+                    <path d="M5 7H3a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-2"/>
+                    <rect x="7" y="3" width="10" height="6" rx="1"/>
+                </svg>
+                <h3 class="feat-title">Self-Cleaning Cycle</h3>
+                <p class="feat-desc">Add water and a drop of soap — press clean. Done in 30 seconds. No disassembly, no fuss, no residue.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         STATS
+    ═══════════════════════════════════════ -->
+    <section id="stats">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <div class="stat-num">2200<span class="stat-unit">W</span></div>
+                <div class="stat-label">Peak Motor Power</div>
+            </div>
+            <div class="stat-item" style="transition-delay:0.1s">
+                <div class="stat-num">58<span class="stat-unit">dB</span></div>
+                <div class="stat-label">Operating Volume</div>
+            </div>
+            <div class="stat-item" style="transition-delay:0.2s">
+                <div class="stat-num">2<span class="stat-unit">L</span></div>
+                <div class="stat-label">Max Capacity</div>
+            </div>
+            <div class="stat-item" style="transition-delay:0.3s">
+                <div class="stat-num">10<span class="stat-unit">yr</span></div>
+                <div class="stat-label">Motor Warranty</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         SPECS
+    ═══════════════════════════════════════ -->
+    <section id="specs">
+        <div class="specs-inner">
+
+            <div class="specs-copy">
+                <p class="section-tag">Specifications</p>
+                <h2 class="section-heading" style="margin-bottom:56px">Details that<br>define quality.</h2>
+                <div class="spec-list">
+                    <div class="spec-row"><span class="spec-key">Motor Power</span><span class="spec-val">2200W Peak</span></div>
+                    <div class="spec-row"><span class="spec-key">Speed Settings</span><span class="spec-val">10 Variable + Pulse</span></div>
+                    <div class="spec-row"><span class="spec-key">Jar Capacity</span><span class="spec-val">2.0L / 68 fl oz</span></div>
+                    <div class="spec-row"><span class="spec-key">Jar Material</span><span class="spec-val">Borosilicate Glass</span></div>
+                    <div class="spec-row"><span class="spec-key">Base Finish</span><span class="spec-val">Brushed Titanium</span></div>
+                    <div class="spec-row"><span class="spec-key">Noise Level</span><span class="spec-val">≤ 58 dB</span></div>
+                    <div class="spec-row"><span class="spec-key">Warranty</span><span class="spec-val">10 Years Full Cover</span></div>
+                    <div class="spec-row"><span class="spec-key">Weight</span><span class="spec-val">4.2 kg / 9.3 lb</span></div>
+                    <div class="spec-row"><span class="spec-key">Power Supply</span><span class="spec-val">110–240V, 50/60Hz</span></div>
+                </div>
+            </div>
+
+            <div class="specs-visual" id="specs-visual">
+                <img src="frames/frame_0120.png" alt="VORTEX Pro loaded with fruit">
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         CTA
+    ═══════════════════════════════════════ -->
+    <section id="cta">
+        <div class="cta-inner">
+            <p class="section-tag" style="margin-bottom:20px">Ready to elevate?</p>
+            <h2 class="cta-title">Make it<br>yours.</h2>
+            <p class="cta-sub">Free shipping · 30-day returns · 10-year warranty.</p>
+            <div class="cta-buttons">
+                <button class="btn-primary">Order Now — $599</button>
+                <button class="btn-ghost">View Full Specs</button>
+            </div>
+            <p class="cta-price">Ships in 2–3 business days &nbsp;·&nbsp; Sold direct — no retailers</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-logo">Vortex</div>
+        <ul class="footer-links">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Support</a></li>
+            <li><a href="#">Careers</a></li>
+        </ul>
+        <p class="footer-copy">© 2026 Vortex Industries, Inc.</p>
+    </footer>
+
+    <script>
+    (() => {
+        'use strict';
+
+        // ─── CONSTANTS ───────────────────────────────────────────
+        const FRAME_COUNT = 121;
+        const frames = new Array(FRAME_COUNT);
+        let loadedCount = 0;
+        let currentFrame = -1;
+        let rafId = null;
+        let pendingFrame = null;
+
+        // ─── CANVAS ──────────────────────────────────────────────
+        const canvas  = document.getElementById('blender-canvas');
+        const ctx     = canvas.getContext('2d');
+
+        function drawFrame(idx) {
+            const img = frames[idx];
+            if (!img || !img.complete || !img.naturalWidth) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            currentFrame = idx;
+        }
+
+        function scheduleFrame(idx) {
+            if (idx === currentFrame) return;
+            pendingFrame = idx;
+            if (!rafId) {
+                rafId = requestAnimationFrame(() => {
+                    rafId = null;
+                    if (pendingFrame !== null) {
+                        drawFrame(pendingFrame);
+                        pendingFrame = null;
+                    }
+                });
+            }
+        }
+
+        // ─── PRELOAD ─────────────────────────────────────────────
+        const loaderEl  = document.getElementById('loader');
+        const loaderBar = document.getElementById('loader-bar');
+        const loaderPct = document.getElementById('loader-pct');
+
+        function onFrameLoad() {
+            loadedCount++;
+            const pct = Math.round((loadedCount / FRAME_COUNT) * 100);
+            loaderBar.style.width = pct + '%';
+            loaderPct.textContent = pct + '%';
+
+            if (loadedCount === 1) drawFrame(0); // show first frame immediately
+            if (loadedCount === FRAME_COUNT) {
+                setTimeout(() => {
+                    loaderEl.classList.add('hidden');
+                    setTimeout(() => loaderEl.remove(), 700);
+                }, 300);
+            }
+        }
+
+        for (let i = 0; i < FRAME_COUNT; i++) {
+            const img = new Image();
+            const n   = String(i).padStart(4, '0');
+            img.src   = `frames/frame_${n}.png`;
+            img.onload  = onFrameLoad;
+            img.onerror = onFrameLoad; // don't block on missing frames
+            frames[i] = img;
+        }
+
+        // ─── NAV ─────────────────────────────────────────────────
+        const navbar = document.getElementById('navbar');
+        function updateNav() {
+            navbar.classList.toggle('scrolled', window.scrollY > 60);
+        }
+
+        // ─── SCROLL-DRIVEN FRAME ANIMATION ───────────────────────
+        const heroSection = document.getElementById('hero-scroll');
+        const annoLeft    = document.getElementById('anno-left');
+        const annoRight   = document.getElementById('anno-right');
+
+        function onScroll() {
+            updateNav();
+
+            const heroTop    = heroSection.offsetTop;
+            const heroHeight = heroSection.offsetHeight;
+            const winH       = window.innerHeight;
+            const scrollY    = window.scrollY;
+
+            // Normalised progress 0→1 across the hero scroll range
+            const progress = Math.max(0, Math.min(1,
+                (scrollY - heroTop) / (heroHeight - winH)
+            ));
+
+            const targetIdx = Math.min(
+                Math.round(progress * (FRAME_COUNT - 1)),
+                FRAME_COUNT - 1
+            );
+            scheduleFrame(targetIdx);
+
+            // Side annotations
+            const showLeft  = progress > 0.20 && progress < 0.62;
+            const showRight = progress >= 0.62;
+            annoLeft.classList.toggle('visible', showLeft);
+            annoRight.classList.toggle('visible', showRight);
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll(); // run once on load
+
+        // ─── INTERSECTION OBSERVER REVEALS ───────────────────────
+        const revealObs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const delay = parseInt(entry.target.dataset.delay || '0', 10);
+                setTimeout(() => entry.target.classList.add('revealed'), delay);
+                revealObs.unobserve(entry.target);
+            });
+        }, { threshold: 0.12 });
+
+        // Feature cards
+        document.querySelectorAll('.feature-card').forEach(el => revealObs.observe(el));
+
+        // Stats
+        document.querySelectorAll('.stat-item').forEach(el => revealObs.observe(el));
+
+        // Spec rows with staggered delay
+        document.querySelectorAll('.spec-row').forEach((el, i) => {
+            el.dataset.delay = i * 75;
+            revealObs.observe(el);
+        });
+
+        // Specs image
+        const specsVisual = document.getElementById('specs-visual');
+        if (specsVisual) revealObs.observe(specsVisual);
+
+    })();
+    </script>
+</body>
+</html>
